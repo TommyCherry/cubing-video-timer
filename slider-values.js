@@ -2,6 +2,14 @@
 document.querySelectorAll('.slider-value').forEach(field => {
     const slider = document.getElementById(field.dataset.slider);
     let edited = false;
+    function sync() {
+        if (document.activeElement !== field) field.value = Number(Number(slider.value).toFixed(6));
+        field.disabled = slider.disabled;
+    }
+    // Keep every slider pair synchronized, including restored and newly added controls.
+    slider.addEventListener('input', sync);
+    slider.addEventListener('change', sync);
+    sync();
     function apply() {
         slider.value = field.value;
         slider.dispatchEvent(new Event('input', { bubbles: true }));

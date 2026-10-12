@@ -134,102 +134,6 @@
             </select>
         </div></div>
         </section>
-        <section class="settings-card splits-card" aria-labelledby="splits-title">
-            <h2 id="splits-title">Splits</h2>
-            <label class="check-row"><input type="checkbox" id="splits-enabled"> Include named splits</label>
-            <p class="help">Enter when each split starts, in elapsed timer seconds (not video seconds). Each split ends when the next starts; the last ends at the main stop time. Displayed times are durations of individual splits.</p>
-            <div id="splits-editor" hidden>
-                <label class="check-row"><input type="checkbox" id="splits-live"> Live split times</label>
-                <p class="help">Each split counts from zero at its start time, then freezes when it ends. Future splits show a dash. Turn this off to reveal durations only after splits finish.</p>
-                <label class="check-row"><input type="checkbox" id="splits-background" checked> Give splits their own background</label>
-                <p class="help">The panel uses your timer background colour. Style split text independently below.</p>
-                <fieldset class="split-text-controls">
-                    <legend>Split text</legend>
-                    <div class="control"><label for="split-font">Font:</label><select id="split-font">
-                <option value="Open Sans" data-font="Open Sans">Open Sans</option>
-                <option value="Roboto" data-font="Roboto">Roboto</option>
-                <option value="Lato" data-font="Lato">Lato</option>
-                <option value="Poppins" data-font="Poppins">Poppins</option>
-                <option value="Inter" data-font="Inter">Inter</option>
-                <option value="Montserrat" data-font="Montserrat">Montserrat</option>
-                <option value="Raleway" data-font="Raleway">Raleway</option>
-                <option value="Nunito" data-font="Nunito">Nunito</option>
-                <option value="Ubuntu" data-font="Ubuntu">Ubuntu</option>
-                <option value="Roboto Mono" data-font="Roboto Mono">Roboto Mono</option>
-                <option value="Source Code Pro" data-font="Source Code Pro">Source Code Pro</option>
-                <option value="IBM Plex Mono" data-font="IBM Plex Mono">IBM Plex Mono</option>
-                <option value="Merriweather" data-font="Merriweather">Merriweather</option>
-                <option value="Playfair Display" data-font="Playfair Display">Playfair Display</option>
-                <option value="Orbitron" data-font="Orbitron">Orbitron</option>
-                <option value="Barlow" data-font="Barlow">Barlow</option>
-                <option value="Barlow Condensed" data-font="Barlow Condensed">Barlow Condensed</option>
-                <option value="DM Sans" data-font="DM Sans">DM Sans</option>
-                <option value="Figtree" data-font="Figtree">Figtree</option>
-                <option value="Manrope" data-font="Manrope">Manrope</option>
-                <option value="Mulish" data-font="Mulish">Mulish</option>
-                <option value="Nunito Sans" data-font="Nunito Sans">Nunito Sans</option>
-                <option value="Oswald" data-font="Oswald">Oswald</option>
-                <option value="Outfit" data-font="Outfit">Outfit</option>
-                <option value="Quicksand" data-font="Quicksand">Quicksand</option>
-                <option value="Rubik" data-font="Rubik">Rubik</option>
-                <option value="Work Sans" data-font="Work Sans">Work Sans</option>
-                <option value="Space Mono" data-font="Space Mono">Space Mono</option>
-                <option value="JetBrains Mono" data-font="JetBrains Mono">JetBrains Mono</option>
-                <option value="Fira Code" data-font="Fira Code">Fira Code</option>
-                <option value="Inconsolata" data-font="Inconsolata">Inconsolata</option>
-                <option value="PT Mono" data-font="PT Mono">PT Mono</option>
-                <option value="Ubuntu Mono" data-font="Ubuntu Mono">Ubuntu Mono</option>
-                <option value="Audiowide" data-font="Audiowide">Audiowide</option>
-                <option value="Bebas Neue" data-font="Bebas Neue">Bebas Neue</option>
-                <option value="Bungee" data-font="Bungee">Bungee</option>
-                <option value="Chakra Petch" data-font="Chakra Petch">Chakra Petch</option>
-                <option value="Exo 2" data-font="Exo 2">Exo 2</option>
-                <option value="Monoton" data-font="Monoton">Monoton</option>
-                <option value="Press Start 2P" data-font="Press Start 2P">Press Start 2P</option>
-                <option value="Rajdhani" data-font="Rajdhani">Rajdhani</option>
-                <option value="Righteous" data-font="Righteous">Righteous</option>
-                <option value="Russo One" data-font="Russo One">Russo One</option>
-                <option value="Teko" data-font="Teko">Teko</option>
-                <option value="VT323" data-font="VT323">VT323</option>
-                <option value="Bitter" data-font="Bitter">Bitter</option>
-                <option value="Cormorant Garamond" data-font="Cormorant Garamond">Cormorant Garamond</option>
-                <option value="Crimson Text" data-font="Crimson Text">Crimson Text</option>
-                <option value="DM Serif Display" data-font="DM Serif Display">DM Serif Display</option>
-                <option value="Libre Baskerville" data-font="Libre Baskerville">Libre Baskerville</option>
-                <option value="Lora" data-font="Lora">Lora</option>
-                <option value="Caveat" data-font="Caveat">Caveat</option>
-                <option value="Dancing Script" data-font="Dancing Script">Dancing Script</option>
-                <option value="Kalam" data-font="Kalam">Kalam</option>
-                <option value="Pacifico" data-font="Pacifico">Pacifico</option>
-                <option value="Permanent Marker" data-font="Permanent Marker">Permanent Marker</option>
-                <option value="Shadows Into Light" data-font="Shadows Into Light">Shadows Into Light</option>
-                <option value="Segoe UI" data-font="Segoe UI">Segoe UI</option>
-                <option value="Arial" data-font="Arial" selected>Arial</option>
-                <option value="Helvetica" data-font="Helvetica">Helvetica</option>
-                <option value="Verdana" data-font="Verdana">Verdana</option>
-                <option value="Tahoma" data-font="Tahoma">Tahoma</option>
-                <option value="Comic Sans MS" data-font="Comic Sans MS">Comic Sans</option>
-                <option value="Garamond" data-font="Garamond">Garamond</option>
-                <option value="Times New Roman" data-font="Times New Roman">Times New Roman</option>
-                <option value="Courier New" data-font="Courier New">Courier New</option>
-                <option value="7-Segment Display" data-font="7-Segment Display">7-Segment Display</option>
-                <option value="7-Segment Display Mini" data-font="7-Segment Display Mini">7-Segment Display Mini</option>
-                <option value="7-Segment Display Light" data-font="7-Segment Display Light">7-Segment Display Light</option>
-                <option value="7-Segment Display Mini Light" data-font="7-Segment Display Mini Light">7-Segment Display Mini Light</option>
-                <option value="14-Segment Display" data-font="14-Segment Display">14-Segment Display</option>
-                <option value="14-Segment Display Mini" data-font="14-Segment Display Mini">14-Segment Display Mini</option>
-                <option value="14-Segment Display Light" data-font="14-Segment Display Light">14-Segment Display Light</option>
-                <option value="14-Segment Display Mini Light" data-font="14-Segment Display Mini Light">14-Segment Display Mini Light</option>
-            </select></div>
-                    <div class="control"><label for="split-size">Font size:</label><span class="slider-control"><input type="range" id="split-size" min="10" max="96" step="1" value="22"><input type="number" class="slider-value" id="split-size-value" data-slider="split-size" min="10" max="96" step="1" value="22" aria-label="Split font size (px)"><span class="slider-unit">px</span></span></div>
-                    <div class="split-text-toggles"><label for="split-colour">Text colour:</label><input type="color" id="split-colour" value="#ffffff"><label class="check-row"><input type="checkbox" id="split-bold"> Bold</label><label class="check-row"><input type="checkbox" id="split-italic"> Italic</label></div>
-                    <div class="control"><label for="split-opacity">Text opacity:</label><span class="slider-control"><input type="range" id="split-opacity" min="0" max="100" step="1" value="100"><input type="number" class="slider-value" id="split-opacity-value" data-slider="split-opacity" min="0" max="100" step="1" value="100" aria-label="Split text opacity (%)"><span class="slider-unit">%</span></span></div>
-                </fieldset>
-                <div id="split-rows"></div>
-                <button type="button" id="add-split">Add split</button>
-                <p id="splits-notice" class="help" role="status"></p>
-            </div>
-        </section>
         <section class="settings-card text-card" aria-labelledby="text-title">
             <h2 id="text-title">Text &amp; font</h2>
 <div class="control">
@@ -392,6 +296,132 @@
         </fieldset></div>
             </div>
         </section>
+        <section class="settings-card splits-card" aria-labelledby="splits-title">
+            <h2 id="splits-title">Splits</h2>
+            <label class="check-row"><input type="checkbox" id="splits-enabled"> Include named splits</label>
+            <p class="help">Enter when each split starts, in elapsed timer seconds (not video seconds). Each split ends when the next starts; the last ends at the main stop time. Displayed times are durations of individual splits.</p>
+            <div id="splits-editor" hidden>
+                <label class="check-row"><input type="checkbox" id="splits-live"> Live split times</label>
+                <p class="help">Each split counts from zero at its start time, then freezes when it ends. Future splits show a dash. Turn this off to reveal durations only after splits finish.</p>
+                <label class="check-row"><input type="checkbox" id="splits-match-main"> Use same settings as main timer</label>
+                <p class="help">Keeps all appearance settings linked to the main timer. Turn off to restore your separate split styling. Names, timings and the name–time gap stay independent.</p>
+                <div id="split-custom-style">
+                <label class="check-row"><input type="checkbox" id="splits-background" checked> Give splits their own background</label>
+                <p class="help">The panel uses your timer background colour. Adjust its text, border and spacing independently below.</p>
+                <fieldset class="split-text-controls">
+                    <legend>Split text</legend>
+                    <div class="control"><label for="split-font">Font:</label><select id="split-font">
+                <option value="Open Sans" data-font="Open Sans">Open Sans</option>
+                <option value="Roboto" data-font="Roboto">Roboto</option>
+                <option value="Lato" data-font="Lato">Lato</option>
+                <option value="Poppins" data-font="Poppins">Poppins</option>
+                <option value="Inter" data-font="Inter">Inter</option>
+                <option value="Montserrat" data-font="Montserrat">Montserrat</option>
+                <option value="Raleway" data-font="Raleway">Raleway</option>
+                <option value="Nunito" data-font="Nunito">Nunito</option>
+                <option value="Ubuntu" data-font="Ubuntu">Ubuntu</option>
+                <option value="Roboto Mono" data-font="Roboto Mono">Roboto Mono</option>
+                <option value="Source Code Pro" data-font="Source Code Pro">Source Code Pro</option>
+                <option value="IBM Plex Mono" data-font="IBM Plex Mono">IBM Plex Mono</option>
+                <option value="Merriweather" data-font="Merriweather">Merriweather</option>
+                <option value="Playfair Display" data-font="Playfair Display">Playfair Display</option>
+                <option value="Orbitron" data-font="Orbitron">Orbitron</option>
+                <option value="Barlow" data-font="Barlow">Barlow</option>
+                <option value="Barlow Condensed" data-font="Barlow Condensed">Barlow Condensed</option>
+                <option value="DM Sans" data-font="DM Sans">DM Sans</option>
+                <option value="Figtree" data-font="Figtree">Figtree</option>
+                <option value="Manrope" data-font="Manrope">Manrope</option>
+                <option value="Mulish" data-font="Mulish">Mulish</option>
+                <option value="Nunito Sans" data-font="Nunito Sans">Nunito Sans</option>
+                <option value="Oswald" data-font="Oswald">Oswald</option>
+                <option value="Outfit" data-font="Outfit">Outfit</option>
+                <option value="Quicksand" data-font="Quicksand">Quicksand</option>
+                <option value="Rubik" data-font="Rubik">Rubik</option>
+                <option value="Work Sans" data-font="Work Sans">Work Sans</option>
+                <option value="Space Mono" data-font="Space Mono">Space Mono</option>
+                <option value="JetBrains Mono" data-font="JetBrains Mono">JetBrains Mono</option>
+                <option value="Fira Code" data-font="Fira Code">Fira Code</option>
+                <option value="Inconsolata" data-font="Inconsolata">Inconsolata</option>
+                <option value="PT Mono" data-font="PT Mono">PT Mono</option>
+                <option value="Ubuntu Mono" data-font="Ubuntu Mono">Ubuntu Mono</option>
+                <option value="Audiowide" data-font="Audiowide">Audiowide</option>
+                <option value="Bebas Neue" data-font="Bebas Neue">Bebas Neue</option>
+                <option value="Bungee" data-font="Bungee">Bungee</option>
+                <option value="Chakra Petch" data-font="Chakra Petch">Chakra Petch</option>
+                <option value="Exo 2" data-font="Exo 2">Exo 2</option>
+                <option value="Monoton" data-font="Monoton">Monoton</option>
+                <option value="Press Start 2P" data-font="Press Start 2P">Press Start 2P</option>
+                <option value="Rajdhani" data-font="Rajdhani">Rajdhani</option>
+                <option value="Righteous" data-font="Righteous">Righteous</option>
+                <option value="Russo One" data-font="Russo One">Russo One</option>
+                <option value="Teko" data-font="Teko">Teko</option>
+                <option value="VT323" data-font="VT323">VT323</option>
+                <option value="Bitter" data-font="Bitter">Bitter</option>
+                <option value="Cormorant Garamond" data-font="Cormorant Garamond">Cormorant Garamond</option>
+                <option value="Crimson Text" data-font="Crimson Text">Crimson Text</option>
+                <option value="DM Serif Display" data-font="DM Serif Display">DM Serif Display</option>
+                <option value="Libre Baskerville" data-font="Libre Baskerville">Libre Baskerville</option>
+                <option value="Lora" data-font="Lora">Lora</option>
+                <option value="Caveat" data-font="Caveat">Caveat</option>
+                <option value="Dancing Script" data-font="Dancing Script">Dancing Script</option>
+                <option value="Kalam" data-font="Kalam">Kalam</option>
+                <option value="Pacifico" data-font="Pacifico">Pacifico</option>
+                <option value="Permanent Marker" data-font="Permanent Marker">Permanent Marker</option>
+                <option value="Shadows Into Light" data-font="Shadows Into Light">Shadows Into Light</option>
+                <option value="Segoe UI" data-font="Segoe UI">Segoe UI</option>
+                <option value="Arial" data-font="Arial" selected>Arial</option>
+                <option value="Helvetica" data-font="Helvetica">Helvetica</option>
+                <option value="Verdana" data-font="Verdana">Verdana</option>
+                <option value="Tahoma" data-font="Tahoma">Tahoma</option>
+                <option value="Comic Sans MS" data-font="Comic Sans MS">Comic Sans</option>
+                <option value="Garamond" data-font="Garamond">Garamond</option>
+                <option value="Times New Roman" data-font="Times New Roman">Times New Roman</option>
+                <option value="Courier New" data-font="Courier New">Courier New</option>
+                <option value="7-Segment Display" data-font="7-Segment Display">7-Segment Display</option>
+                <option value="7-Segment Display Mini" data-font="7-Segment Display Mini">7-Segment Display Mini</option>
+                <option value="7-Segment Display Light" data-font="7-Segment Display Light">7-Segment Display Light</option>
+                <option value="7-Segment Display Mini Light" data-font="7-Segment Display Mini Light">7-Segment Display Mini Light</option>
+                <option value="14-Segment Display" data-font="14-Segment Display">14-Segment Display</option>
+                <option value="14-Segment Display Mini" data-font="14-Segment Display Mini">14-Segment Display Mini</option>
+                <option value="14-Segment Display Light" data-font="14-Segment Display Light">14-Segment Display Light</option>
+                <option value="14-Segment Display Mini Light" data-font="14-Segment Display Mini Light">14-Segment Display Mini Light</option>
+            </select></div>
+                    <div class="control"><label for="split-size">Font size:</label><span class="slider-control"><input type="range" id="split-size" min="10" max="96" step="1" value="22"><input type="number" class="slider-value" id="split-size-value" data-slider="split-size" min="10" max="96" step="1" value="22" aria-label="Split font size (px)"><span class="slider-unit">px</span></span></div>
+                    <div class="split-text-toggles"><label for="split-colour">Text colour:</label><input type="color" id="split-colour" value="#ffffff"><label class="check-row"><input type="checkbox" id="split-bold"> Bold</label><label class="check-row"><input type="checkbox" id="split-italic"> Italic</label></div>
+                    <div class="control"><label for="split-opacity">Text opacity:</label><span class="slider-control"><input type="range" id="split-opacity" min="0" max="100" step="1" value="100"><input type="number" class="slider-value" id="split-opacity-value" data-slider="split-opacity" min="0" max="100" step="1" value="100" aria-label="Split text opacity (%)"><span class="slider-unit">%</span></span></div>
+                </fieldset>
+<fieldset class="control split-border">
+            <legend>Split background border</legend>
+            <label for="split-border-style">Style:</label>
+            <select id="split-border-style">
+                <option value="none" selected>None</option>
+                <option value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+                <option value="double">Double</option>
+            </select>
+            <label for="split-border-colour">Colour:</label>
+            <input type="color" id="split-border-colour" value="#ffffff">
+            <label for="split-border-width">Stroke width (px):</label>
+            <span class="slider-control"><input type="range" id="split-border-width" value="2" min="0" max="2000" step="any"><input type="number" class="slider-value" id="split-border-width-value" data-slider="split-border-width" value="2" min="0" max="2000" step="any" aria-label="Split border width (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+        </fieldset>
+                <fieldset class="control">
+                    <legend>Split background spacing</legend>
+                    <p class="help">Set padding around the splits independently of the main timer.</p>
+                    <div class="spacing-inputs">
+                        <label for="split-padding-top">Top <span class="slider-control"><input type="range" id="split-padding-top" min="0" max="2000" step="1" value="10"><input type="number" class="slider-value" id="split-padding-top-value" data-slider="split-padding-top" min="0" max="2000" step="1" value="10" aria-label="Split background padding top (px)"><span class="slider-unit">px</span></span></label>
+                        <label for="split-padding-right">Right <span class="slider-control"><input type="range" id="split-padding-right" min="0" max="2000" step="1" value="16"><input type="number" class="slider-value" id="split-padding-right-value" data-slider="split-padding-right" min="0" max="2000" step="1" value="16" aria-label="Split background padding right (px)"><span class="slider-unit">px</span></span></label>
+                        <label for="split-padding-bottom">Bottom <span class="slider-control"><input type="range" id="split-padding-bottom" min="0" max="2000" step="1" value="10"><input type="number" class="slider-value" id="split-padding-bottom-value" data-slider="split-padding-bottom" min="0" max="2000" step="1" value="10" aria-label="Split background padding bottom (px)"><span class="slider-unit">px</span></span></label>
+                        <label for="split-padding-left">Left <span class="slider-control"><input type="range" id="split-padding-left" min="0" max="2000" step="1" value="16"><input type="number" class="slider-value" id="split-padding-left-value" data-slider="split-padding-left" min="0" max="2000" step="1" value="16" aria-label="Split background padding left (px)"><span class="slider-unit">px</span></span></label>
+                    </div>
+                </fieldset>
+                </div>
+                    <div class="control"><label for="split-column-gap">Name–time gap:</label><span class="slider-control"><input type="range" id="split-column-gap" min="0" max="400" step="1" value="24"><input type="number" class="slider-value" id="split-column-gap-value" data-slider="split-column-gap" min="0" max="400" step="1" value="24" aria-label="Split name to time gap (px)"><span class="slider-unit">px</span></span></div>
+                <div id="split-rows"></div>
+                <button type="button" id="add-split">Add split</button>
+                <p id="splits-notice" class="help" role="status"></p>
+            </div>
+        </section>
     </div>
 
     <section id="video-export" class="settings-card" aria-labelledby="export-title">
@@ -399,6 +429,15 @@
         <div class="export-grid">
             <div class="export-settings">
                 <h3>Frame &amp; format</h3>
+                <div class="control">
+                    <label for="export-visual">Visual to export:</label>
+                    <select id="export-visual">
+                        <option value="combined">Main timer and splits</option>
+                        <option value="main">Main timer only</option>
+                        <option value="splits">Splits only</option>
+                    </select>
+                    <p class="help">Export each visual separately to get two files for editing. Both use the same delay, speed, stop time and end hold. Each visual is centered in the selected video frame.</p>
+                </div>
 <div class="video-dimensions">
             <label class="dimension-mode"><input type="checkbox" id="lock-video-ratio"> Lock video aspect ratio</label>
             <label for="video-width">Video width:</label>
@@ -442,11 +481,11 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.6.0/dist/js/tom-select.complete.min.js"></script>
     <script src="settings.js"></script>
     <script src="script.js" ></script>
-    <script src="splits.js"></script>
-    <script src="video-export.js"></script>
+    <script src="splits.js?v=5721df2c0766"></script>
+    <script src="video-export.js?v=187cb4bee6dc"></script>
     <script src="preview.js"></script>
     <script src="presets.js"></script>
-    <script src="slider-values.js"></script>
+    <script src="slider-values.js?v=81117a9c3f88"></script>
     <script src="timing-controls.js"></script>
 </body>
 

@@ -4,10 +4,17 @@
     const container = document.getElementById('split-rows');
     const add = document.getElementById('add-split');
     const font = document.getElementById('split-font');
+    const matchMain = document.getElementById('splits-match-main');
+    function updateLinkedStyle() {
+        document.getElementById('split-custom-style').hidden = matchMain.checked;
+        document.dispatchEvent(new Event('splitstylechange'));
+    }
+    matchMain.addEventListener('change', updateLinkedStyle);
+    updateLinkedStyle();
     let previewFont = font.value;
     function refreshStyle(value = font.value) {
         previewFont = value;
-        for (const id of ['split-size', 'split-opacity']) updateNumberField(id, document.getElementById(id).value);
+        for (const id of ['split-size', 'split-opacity', 'split-column-gap']) updateNumberField(id, document.getElementById(id).value);
         const style = textStyle();
         document.fonts.load(style.font, 'Split 0123456789:.').catch(() => {});
         document.dispatchEvent(new Event('splitstylechange'));
@@ -15,6 +22,7 @@
     function textStyle() {
         const size = Number(document.getElementById('split-size').value);
         return {
+            columnGap: Number(document.getElementById('split-column-gap').value),
             size, font: `${document.getElementById('split-italic').checked ? 'italic' : 'normal'} ${document.getElementById('split-bold').checked ? '700' : '400'} ${size}px "${previewFont}", sans-serif`,
             colour: document.getElementById('split-colour').value,
             opacity: Number(document.getElementById('split-opacity').value) / 100
@@ -31,7 +39,7 @@
             return `<div style="font-family:'${escape(data.value)}',sans-serif">${escape(data.text)} <span>12.34</span></div>`;
         } }
     });
-    for (const id of ['split-font', 'split-size', 'split-colour', 'split-opacity', 'split-bold', 'split-italic']) {
+    for (const id of ['split-font', 'split-size', 'split-column-gap', 'split-colour', 'split-opacity', 'split-bold', 'split-italic']) {
         document.getElementById(id).addEventListener('input', () => refreshStyle());
     }
     refreshStyle();

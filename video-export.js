@@ -114,7 +114,20 @@ const TimerVideo = (() => {
         });
     }
 
+    function linkedSplitSettings(settings) {
+        if (!settings.splitsMatchMain) return settings;
+        return {
+            ...settings,
+            splitText: { ...settings.splitText, size: settings.size, font: settings.font,
+                colour: settings.colour, opacity: settings.textOpacity ?? 1 },
+            splitPadding: settings.padding,
+            splitBorder: { style: settings.borderStyle, width: settings.borderWidth, colour: settings.borderColour },
+            splitsBackground: settings.includeShape
+        };
+    }
+
     function drawFrame(canvas, textValue, settings) {
+        settings = linkedSplitSettings(settings);
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.font = settings.font;
@@ -129,12 +142,29 @@ const TimerVideo = (() => {
         const border = settings.borderStyle === 'none' ? 0 : settings.borderWidth;
         const width = settings.custom ? settings.shapeWidth : textWidth + p.left + p.right + border * 2;
         const height = settings.custom ? settings.shapeHeight : lineHeight + p.top + p.bottom + border * 2;
-        const splits = settings.splits || [];
+        const showMain = settings.exportVisual !== 'splits';
+        const splits = settings.exportVisual === 'main' ? [] : (settings.splits || []);
         const splitSize = settings.splitText?.size ?? Math.max(14, Math.min(32, settings.size * .2));
         const splitRowHeight = Math.ceil(splitSize * 1.8);
         const splitGap = splits.length ? Math.ceil(splitSize * .7) : 0;
-        const splitHeight = splits.length ? splitRowHeight * splits.length + 20 : 0;
-        const splitWidth = Math.max(width, splitSize * 17);
+        const splitBorderSettings = settings.splitBorder ?? { style: settings.borderStyle, width: settings.borderWidth, colour: settings.borderColour };
+        const splitBorder = settings.splitsBackground && splitBorderSettings.style !== 'none' ? (splitBorderSettings.width || 0) : 0;
+        const splitPadding = settings.splitPadding ?? { top: 10, right: 16, bottom: 10, left: 16 };
+        const splitContentHeight = splitRowHeight * splits.length;
+        const splitCustom = settings.splitsMatchMain && settings.custom;
+        const splitHeight = splits.length ? (splitCustom ? settings.shapeHeight : splitContentHeight + splitPadding.top + splitPadding.bottom + splitBorder * 2) : 0;
+        const splitFont = settings.splitText?.font || `500 ${splitSize}px Arial, sans-serif`;
+        const columnGap = settings.splitText?.columnGap ?? 24;
+        ctx.font = splitFont;
+        const nameWidth = Math.max(0, ...splits.map(split => ctx.measureText(split.name).width));
+        // Reserve a stable time column, including the widest digits, before splits finish.
+        const widestDigit = Math.max(...'0123456789'.split('').map(digit => ctx.measureText(digit).width));
+        const finalLabels = splitTimeLabels(splits, settings.stopTime ?? Infinity, true, settings.stopTime);
+        const timeWidth = Math.max(ctx.measureText('—').width, ...finalLabels.map(label =>
+            [...label].reduce((sum, char) => sum + (/\d/.test(char) ? widestDigit : ctx.measureText(char).width), 0)));
+        const columnsWidth = nameWidth + columnGap + timeWidth;
+        const splitWidth = splitCustom ? settings.shapeWidth : columnsWidth + splitPadding.left + splitPadding.right + splitBorder * 2;
+        ctx.font = settings.font;
         const left = (canvas.width - width) / 2;
         const top = (canvas.height - height - splitGap - splitHeight) / 2;
         function path(inset) {
@@ -144,17 +174,20 @@ const TimerVideo = (() => {
             if (settings.oval) ctx.ellipse(left + width / 2, top + height / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
             else ctx.roundRect(left + inset, top + inset, w, h, Math.max(0, Math.min(settings.radius, width / 2, height / 2) - inset));
         }
-        if (settings.includeShape) {
+        if (showMain && settings.includeShape) {
             path(0);
             ctx.fillStyle = settings.background;
             ctx.fill();
-            if (border > 0) {
-                ctx.strokeStyle = settings.borderColour;
-                ctx.lineWidth = Math.min(border, width / 2, height / 2);
+            drawBorder(path, width, height);
+        }
+        function drawBorder(path, borderBoxWidth, borderBoxHeight, appearance = { style: settings.borderStyle, width: border, colour: settings.borderColour }) {
+            if (appearance.style !== 'none' && appearance.width > 0) {
+                ctx.strokeStyle = appearance.colour;
+                ctx.lineWidth = Math.min(appearance.width, borderBoxWidth / 2, borderBoxHeight / 2);
                 const b = ctx.lineWidth;
-                ctx.setLineDash(settings.borderStyle === 'dashed' ? [b * 3, b * 3] : settings.borderStyle === 'dotted' ? [0, b * 2] : []);
-                ctx.lineCap = settings.borderStyle === 'dotted' ? 'round' : 'butt';
-                if (settings.borderStyle === 'double' && b >= 3) {
+                ctx.setLineDash(appearance.style === 'dashed' ? [b * 3, b * 3] : appearance.style === 'dotted' ? [0, b * 2] : []);
+                ctx.lineCap = appearance.style === 'dotted' ? 'round' : 'butt';
+                if (appearance.style === 'double' && b >= 3) {
                     ctx.lineWidth = b / 3;
                     path(b / 6); ctx.stroke();
                     path(b * 5 / 6); ctx.stroke();
@@ -168,7 +201,7 @@ const TimerVideo = (() => {
         const opacity = settings.textOpacity ?? 1;
         let textContext = ctx;
         let layer;
-        if (opacity < 1 || settings.reverse) {
+        if ((showMain || settings.splitsMatchMain) && (opacity < 1 || settings.reverse)) {
             layer = textLayers.get(canvas);
             if (!layer) {
                 layer = typeof document !== 'undefined' ? document.createElement('canvas') : new OffscreenCanvas(canvas.width, canvas.height);
@@ -185,13 +218,14 @@ const TimerVideo = (() => {
         textContext.lineWidth = settings.stroke || 1;
         textContext.lineJoin = 'round';
         textContext.textBaseline = 'alphabetic';
-        for (const char of textValue) {
+        textContext.textAlign = 'left';
+        for (const char of showMain ? textValue : '') {
             const offset = settings.balanceDigits && /[0-9]/.test(char) ? alignedDigitOffset(ctx, char, digitWidth, settings.font) : 0;
             textContext.fillText(char, x + offset, baseline);
             if (settings.stroke > 0) textContext.strokeText(char, x + offset, baseline);
             x += advance(char);
         }
-        if (layer) {
+        if (layer && showMain) {
             ctx.save();
             ctx.globalAlpha = opacity;
             if (settings.reverse) ctx.globalCompositeOperation = 'destination-out';
@@ -200,26 +234,67 @@ const TimerVideo = (() => {
         }
         if (splits.length) {
             const panelLeft = (canvas.width - splitWidth) / 2;
-            const panelTop = top + height + splitGap;
+            const panelTop = showMain ? top + height + splitGap : (canvas.height - splitHeight) / 2;
             ctx.save();
             if (settings.splitsBackground) {
-                ctx.beginPath();
-                ctx.roundRect(panelLeft, panelTop, splitWidth, splitHeight, Math.min(12, splitSize / 2));
+                const panelPath = inset => {
+                    ctx.beginPath();
+                    const w = Math.max(0, splitWidth - inset * 2);
+                    const h = Math.max(0, splitHeight - inset * 2);
+                    if (settings.splitsMatchMain && settings.oval) {
+                        ctx.ellipse(panelLeft + splitWidth / 2, panelTop + splitHeight / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+                    } else {
+                        const radius = settings.splitsMatchMain ? settings.radius : Math.min(12, splitSize / 2);
+                        ctx.roundRect(panelLeft + inset, panelTop + inset, w, h,
+                            Math.max(0, Math.min(radius, splitWidth / 2, splitHeight / 2) - inset));
+                    }
+                };
+                panelPath(0);
                 ctx.fillStyle = settings.background;
                 ctx.fill();
+                drawBorder(panelPath, splitWidth, splitHeight, splitBorderSettings);
             }
-            ctx.font = settings.splitText?.font || `500 ${splitSize}px Arial, sans-serif`;
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = settings.splitText?.colour || settings.colour;
+            // Composite fill and stroke together, matching the main timer's opacity/cut-out behavior.
+            const splitCtx = settings.splitsMatchMain && layer ? textContext : ctx;
+            if (splitCtx !== ctx) splitCtx.clearRect(0, 0, layer.width, layer.height);
+            splitCtx.font = splitFont;
+            splitCtx.textBaseline = 'middle';
+            splitCtx.fillStyle = settings.splitText?.colour || settings.colour;
+            splitCtx.strokeStyle = settings.strokeColour;
+            splitCtx.lineWidth = settings.stroke || 1;
+            splitCtx.lineJoin = 'round';
             const labels = splitTimeLabels(splits, settings.elapsed ?? 0, settings.splitsLive, settings.stopTime);
+            const columnsLeft = panelLeft + (splitWidth - columnsWidth + splitPadding.left - splitPadding.right) / 2;
+            const rowsTop = panelTop + (splitHeight - splitContentHeight + splitPadding.top - splitPadding.bottom) / 2;
+            function drawSplitText(value, x, y, align) {
+                if (settings.splitsMatchMain && align === 'right') {
+                    const labelWidth = [...value].reduce((sum, char) => sum + advance(char), 0);
+                    let cursor = x - labelWidth;
+                    splitCtx.textAlign = 'left';
+                    for (const char of value) {
+                        const offset = settings.balanceDigits && /[0-9]/.test(char)
+                            ? alignedDigitOffset(splitCtx, char, digitWidth, settings.font) : 0;
+                        splitCtx.fillText(char, cursor + offset, y);
+                        if (settings.stroke > 0) splitCtx.strokeText(char, cursor + offset, y);
+                        cursor += advance(char);
+                    }
+                    return;
+                }
+                splitCtx.textAlign = align;
+                splitCtx.fillText(value, x, y);
+                if (settings.splitsMatchMain && settings.stroke > 0) splitCtx.strokeText(value, x, y);
+            }
             splits.forEach((split, index) => {
-                const y = panelTop + 10 + splitRowHeight * (index + .5);
-                ctx.globalAlpha = settings.splitText?.opacity ?? opacity;
-                ctx.textAlign = 'left';
-                ctx.fillText(split.name, panelLeft + 16, y, splitWidth * .58 - 24);
-                ctx.textAlign = 'right';
-                ctx.fillText(labels[index], panelLeft + splitWidth - 16, y, splitWidth * .4 - 16);
+                const y = rowsTop + splitRowHeight * (index + .5);
+                splitCtx.globalAlpha = splitCtx === ctx ? (settings.splitText?.opacity ?? opacity) : 1;
+                drawSplitText(split.name, columnsLeft, y, 'left');
+                drawSplitText(labels[index], columnsLeft + columnsWidth, y, 'right');
             });
+            if (splitCtx !== ctx) {
+                ctx.globalAlpha = opacity;
+                if (settings.reverse) ctx.globalCompositeOperation = 'destination-out';
+                ctx.drawImage(layer, 0, 0);
+            }
             ctx.restore();
         }
         const inkMargin = settings.size * 0.3 + settings.stroke;
@@ -231,7 +306,7 @@ const TimerVideo = (() => {
             bounds.width = Math.max(bounds.width, splitWidth);
             bounds.height += splitGap + splitHeight;
         }
-        return bounds;
+        return showMain ? bounds : { width: splits.length ? splitWidth : 0, height: splitHeight };
     }
 
     function mp4MimeType() {
@@ -325,7 +400,7 @@ const TimerVideo = (() => {
         }
     }
 
-    return { splitTimeLabels, exportTiming, convertMov, makeMov, formatTime, frameTime, drawFrame, frameRate, mp4MimeType, recordMp4, lockedFrameSize, digitOffset, alignedDigitOffset };
+    return { linkedSplitSettings, splitTimeLabels, exportTiming, convertMov, makeMov, formatTime, frameTime, drawFrame, frameRate, mp4MimeType, recordMp4, lockedFrameSize, digitOffset, alignedDigitOffset };
 })();
 
 if (typeof module !== 'undefined') module.exports = TimerVideo;
@@ -366,21 +441,26 @@ if (typeof document !== 'undefined') {
         });
     }
     const stopTime = () => (number('stopTimerHours') * 3600 + number('stopTimerMinutes') * 60 + number('stopTimerSeconds')) * 1000;
-    function snapshot() {
+    function snapshot(forExport = false) {
         const timer = document.getElementById('timer');
         const style = getComputedStyle(timer);
         // Layout dimensions exclude the sticky preview’s visual scale.
         const rect = { width: timer.offsetWidth, height: timer.offsetHeight };
         const oval = document.getElementById('background-shape').value === 'oval';
-        return {
+        return TimerVideo.linkedSplitSettings({
+            exportVisual: forExport ? document.getElementById('export-visual').value : 'combined',
             font: `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`,
             size: parseFloat(style.fontSize), colour: style.color,
             lineHeight: timer.querySelector('#sec2').offsetHeight,
             stroke: number('text-stroke-width'), strokeColour: document.getElementById('text-stroke-colour').value,
             textOpacity: number('text-opacity') / 100,
             reverse: reverseInput.checked,
+            splitsMatchMain: document.getElementById('splits-match-main').checked,
             splits: window.TimerSplits?.snapshot() || [],
             splitText: window.TimerSplits?.textStyle(),
+            splitBorder: { style: document.getElementById('split-border-style').value,
+                width: number('split-border-width'), colour: document.getElementById('split-border-colour').value },
+            splitPadding: Object.fromEntries(['top', 'right', 'bottom', 'left'].map(side => [side, number(`split-padding-${side}`)])),
             splitsBackground: document.getElementById('splits-background').checked,
             splitsLive: document.getElementById('splits-live').checked,
             elapsed: Number(timer.dataset.elapsed) || 0,
@@ -394,7 +474,7 @@ if (typeof document !== 'undefined') {
             borderStyle: document.getElementById('border-style').value,
             borderColour: document.getElementById('border-colour').value,
             padding: Object.fromEntries(['top', 'right', 'bottom', 'left'].map(side => [side, oval ? 0 : number(`padding-${side}`)]))
-        };
+        });
     }
     function updatePreview() {
         preview.width = number('video-width');
@@ -421,8 +501,10 @@ if (typeof document !== 'undefined') {
             if (digit.style.textAlign !== align) digit.style.textAlign = align;
         }
         const endText = TimerVideo.formatTime(Math.max(0, stopTime()), document.getElementById('timeformat').selectedIndex);
-        const endBounds = TimerVideo.drawFrame(preview, endText, settings);
         const bounds = TimerVideo.drawFrame(preview, currentText, settings);
+        const exportSettings = { ...settings, exportVisual: document.getElementById('export-visual').value };
+        const endBounds = TimerVideo.drawFrame(preview, endText, exportSettings);
+        const exportBounds = TimerVideo.drawFrame(preview, currentText, exportSettings);
         const reversePreview = document.getElementById('reverse-preview');
         const canvasPreview = settings.reverse || settings.splits.length > 0;
         document.getElementById('timer-stage').classList.toggle('reverse-active', canvasPreview);
@@ -430,10 +512,12 @@ if (typeof document !== 'undefined') {
         if (canvasPreview) {
             reversePreview.width = Math.max(1, Math.ceil(settings.splits.length ? bounds.width : settings.shapeWidth));
             reversePreview.height = Math.max(1, Math.ceil(settings.splits.length ? bounds.height : settings.shapeHeight));
-            TimerVideo.drawFrame(reversePreview, currentText, { ...settings, custom: true, includeShape: true });
+            TimerVideo.drawFrame(reversePreview, currentText, settings.splits.length ? settings : { ...settings, custom: true, includeShape: true });
             reversePreview.setAttribute('aria-label', `Timer ${currentText}${settings.reverse ? ", cut-out text" : ""}${settings.splits.length ? ", with splits" : ""}`);
         }
-        document.getElementById('frame-warning').textContent = Math.max(bounds.width, endBounds.width) > preview.width || Math.max(bounds.height, endBounds.height) > preview.height
+        document.getElementById('frame-warning').textContent = exportSettings.exportVisual === 'splits' && !settings.splits.length
+            ? 'Enable named splits and add at least one split to export splits only.'
+            : Math.max(exportBounds.width, endBounds.width) > preview.width || Math.max(exportBounds.height, endBounds.height) > preview.height
             ? 'The timer may be cropped by the video frame. Increase the video dimensions or choose Fit frame to timer.' : '';
     }
     let previewPending = false;
@@ -451,7 +535,7 @@ if (typeof document !== 'undefined') {
     document.fonts.addEventListener('loadingdone', schedulePreview);
     window.addEventListener('resize', schedulePreview);
     document.getElementById('fit-video').addEventListener('click', () => {
-        const bounds = TimerVideo.drawFrame(preview, TimerVideo.formatTime(Math.max(0, stopTime()), document.getElementById('timeformat').selectedIndex), snapshot());
+        const bounds = TimerVideo.drawFrame(preview, TimerVideo.formatTime(Math.max(0, stopTime()), document.getElementById('timeformat').selectedIndex), snapshot(true));
         const size = videoRatioLock.checked
             ? TimerVideo.lockedFrameSize(Math.max(bounds.width + 16, (bounds.height + 16) * videoRatio), videoRatio)
             : { width: Math.min(4096, Math.max(64, Math.ceil(bounds.width + 16))), height: Math.min(4096, Math.max(64, Math.ceil(bounds.height + 16))) };
@@ -478,7 +562,12 @@ if (typeof document !== 'undefined') {
 
 
     button.addEventListener('click', async () => {
-        if (!window.TimerSplits?.validate()) {
+        const settings = snapshot(true);
+        if (settings.exportVisual === 'splits' && !settings.splits.length) {
+            status.textContent = 'Enable named splits and add at least one split before exporting splits only.';
+            return;
+        }
+        if (settings.exportVisual !== 'main' && !window.TimerSplits?.validate()) {
             status.textContent = 'Enter a valid elapsed time for each split.';
             return;
         }
@@ -486,7 +575,7 @@ if (typeof document !== 'undefined') {
         const hold = number('end-hold');
         const stop = (number('stopTimerHours') * 3600 + number('stopTimerMinutes') * 60 + number('stopTimerSeconds')) * 1000;
         const speed = number('speedmult');
-        if (reverseInput.checked && document.getElementById('video-format').value === 'mp4') {
+        if (settings.reverse && (settings.exportVisual !== 'splits' || settings.splitsMatchMain) && document.getElementById('video-format').value === 'mp4') {
             status.textContent = 'Choose MOV for cut-out text. H.264 MP4 cannot preserve the transparent holes needed to show the video underneath.';
             return;
         }
@@ -506,7 +595,6 @@ if (typeof document !== 'undefined') {
         if (downloadURL) { URL.revokeObjectURL(downloadURL); downloadURL = undefined; }
         try {
             // Snapshot styles so editing the page during export cannot change the video.
-            const settings = snapshot();
             const videoWidth = number('video-width');
             const videoHeight = number('video-height');
             const formatIndex = document.getElementById('timeformat').selectedIndex;
@@ -524,7 +612,7 @@ if (typeof document !== 'undefined') {
             }
             if (cancelled) throw new Error('Export cancelled.');
             await document.fonts.load(settings.font, '0123456789:.');
-            if (settings.splits.length) await document.fonts.load(settings.splitText.font, settings.splits.map(split => split.name).join(' ') + '0123456789:.');
+            if (settings.exportVisual !== 'main' && settings.splits.length) await document.fonts.load(settings.splitText.font, settings.splits.map(split => split.name).join(' ') + '0123456789:.');
             const canvas = document.createElement('canvas');
             canvas.width = videoWidth;
             canvas.height = videoHeight;
@@ -574,12 +662,13 @@ if (typeof document !== 'undefined') {
             }
             downloadURL = URL.createObjectURL(movie);
             download.href = downloadURL;
-            download.download = `timer.${fileFormat}`;
-            download.textContent = `Save timer.${fileFormat}`;
+            const filename = `${settings.exportVisual === 'splits' ? 'splits' : settings.exportVisual === 'main' ? 'main-timer' : 'timer'}.${fileFormat}`;
+            download.download = filename;
+            download.textContent = `Save ${filename}`;
             download.hidden = false;
             download.click();
             progress.value = 1;
-            status.textContent = `Video ready (${(movie.size / 1024 / 1024).toFixed(1)} MB). If the download did not start, use Save timer.${fileFormat}.`;
+            status.textContent = `Video ready (${(movie.size / 1024 / 1024).toFixed(1)} MB). If the download did not start, use Save ${filename}.`;
         } catch (error) {
             status.textContent = cancelled ? 'Export cancelled.' : error.message || 'Video export failed. Please try again.';
         } finally {

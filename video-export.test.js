@@ -264,6 +264,53 @@ test('splits reveal at elapsed milestones and reserve stable space below the mai
     drawFrame(canvas, '4', { ...settings, elapsed: 5500, splitsBackground: false });
     assert.equal(calls.filter(c => c[0] === 'rect').length, 1);
     assert.ok(calls.some(c => c[1] === '4.00'));
+    calls.length = 0;
+    const paddedBounds = drawFrame(canvas, '4', { ...settings,
+        splitPadding: { top: 30, right: 70, bottom: 50, left: 90 }
+    });
+    const paddedPanel = calls.filter(c => c[0] === 'rect')[1];
+    const paddedName = calls.find(c => c[0] === 'text' && c[1] === 'Cross');
+    assert.equal(paddedName[2] - paddedPanel[1], 90, 'left padding positions the name within the panel');
+    assert.equal(paddedName[3] - paddedPanel[2], 30 + Math.ceil(14 * 1.8) / 2);
+    assert.equal(paddedPanel[3] - geometry[1][3], (90 + 70) - 32);
+    assert.equal(paddedBounds.height - after.height, (30 + 50) - 20);
+    calls.length = 0;
+    drawFrame(canvas, '4', { ...settings, splitPadding: { top: 0, right: 0, bottom: 0, left: 0 } });
+    const tightPanel = calls.filter(c => c[0] === 'rect')[1];
+    const tightName = calls.find(c => c[0] === 'text' && c[1] === 'Cross');
+    assert.equal(tightName[2], tightPanel[1], 'zero padding reaches the content edge');
+    assert.ok(tightPanel[3] < settings.shapeWidth, 'split padding is independent of main timer width');
+    const strokes = [];
+    ctx.stroke = function() { strokes.push({ colour: this.strokeStyle, width: this.lineWidth, cap: this.lineCap }); };
+    const noShapeBounds = drawFrame(canvas, '4', { ...settings, includeShape: false });
+    for (const borderStyle of ['none', 'solid', 'dashed', 'dotted', 'double']) {
+        strokes.length = 0;
+        const bordered = drawFrame(canvas, '4', { ...settings, includeShape: false,
+            borderStyle, borderWidth: 6, borderColour: '#123456'
+        });
+        assert.equal(strokes.length, borderStyle === 'none' ? 0 : borderStyle === 'double' ? 2 : 1);
+        assert.ok(strokes.every(stroke => stroke.colour === '#123456'));
+        if (borderStyle === 'dotted') assert.equal(strokes[0].cap, 'round');
+        assert.equal(bordered.height, noShapeBounds.height + (borderStyle === 'none' ? 0 : 12));
+        strokes.length = 0;
+        drawFrame(canvas, '4', { ...settings, includeShape: false, splitsBackground: false,
+            borderStyle, borderWidth: 6, borderColour: '#123456'
+        });
+        assert.equal(strokes.length, 0, 'no split border when its background is disabled');
+    }
+    const positions = [];
+    for (const columnGap of [0, 80, 400]) {
+        calls.length = 0;
+        const bounds = drawFrame(canvas, '4', { ...settings, elapsed: 5500,
+            splitText: { size: 22, columnGap }
+        });
+        const name = calls.find(c => c[0] === 'text' && c[1] === 'Cross');
+        const time = calls.find(c => c[0] === 'text' && c[1] === '1.50');
+        positions.push(time[2] - name[2]);
+        assert.ok(bounds.width >= time[2] - name[2] + 32, 'fit bounds include both columns and panel padding');
+    }
+    assert.equal(positions[1] - positions[0], 80);
+    assert.equal(positions[2] - positions[0], 400);
     const styled = [];
     ctx.fillText = function(text) { styled.push({ text, font: this.font, colour: this.fillStyle, opacity: this.globalAlpha }); };
     const larger = drawFrame(canvas, '4', { ...settings, elapsed: 4000,
@@ -303,4 +350,167 @@ test('split timestamps are starts, with per-segment durations and a final stop b
     assert.deepEqual(splitTimeLabels([{ time: 2000 }, { time: 8000 }], 6000, true, 6000), ['4.00', '—']);
     assert.deepEqual(splitTimeLabels([{ time: 0 }, { time: 0 }], 0, true, 6000), ['0.00', '0.00']);
     assert.notDeepEqual(splitTimeLabels(splits, 1100, true, 15000), splitTimeLabels(splits, 1200, true, 15000));
+});
+
+test('linked split styling follows main timer changes without overwriting separate settings', () => {
+    const { linkedSplitSettings } = require('./video-export.js');
+    const original = {
+        splitsMatchMain: true, size: 112, font: 'italic 700 112px Georgia', colour: '#ff0000',
+        textOpacity: .4, padding: { top: 2, right: 4, bottom: 6, left: 8 }, includeShape: false,
+        splitText: { size: 22, font: '22px Arial', colour: '#ffffff', opacity: 1, columnGap: 55 },
+        splitPadding: { top: 10, right: 16, bottom: 10, left: 16 }, splitsBackground: true
+    };
+    const linked = linkedSplitSettings(original);
+    assert.deepEqual(linked.splitText, { size: 112, font: original.font, colour: '#ff0000', opacity: .4, columnGap: 55 });
+    assert.deepEqual(linked.splitPadding, original.padding);
+    assert.equal(linked.splitsBackground, false);
+    assert.equal(linkedSplitSettings({ ...original, size: 200 }).splitText.size, 200);
+    const unlinked = linkedSplitSettings({ ...original, splitsMatchMain: false });
+    assert.equal(unlinked.splitText.size, 22);
+    assert.equal(unlinked.splitsBackground, true);
+    assert.equal(unlinked.splitPadding.top, 10);
+});
+
+test('linked splits render main font, stroke, custom shape and background visibility', () => {
+    const shapes = [], texts = [], strokes = [];
+    const ctx = {
+        measureText: () => ({ width: 10, fontBoundingBoxAscent: 15, fontBoundingBoxDescent: 5 }),
+        clearRect() {}, beginPath() {}, setLineDash() {}, save() {}, restore() {}, fill() {}, stroke() {},
+        roundRect: (...args) => shapes.push(['rect', ...args]),
+        ellipse: (...args) => shapes.push(['oval', ...args]),
+        fillText(text) { texts.push({ text, font: this.font, colour: this.fillStyle }); },
+        strokeText(text) { strokes.push({ text, width: this.lineWidth, colour: this.strokeStyle }); }
+    };
+    const canvas = { width: 1000, height: 1000, getContext: () => ctx };
+    const settings = {
+        font: 'italic 700 40px Georgia', size: 40, lineHeight: 48,
+        colour: '#ff0000', stroke: 2, strokeColour: '#00ff00', textOpacity: 1,
+        padding: { top: 10, right: 20, bottom: 30, left: 40 },
+        custom: true, shapeWidth: 300, shapeHeight: 200, includeShape: true,
+        borderStyle: 'solid', borderWidth: 4, borderColour: '#ffffff', radius: 32, background: '#000000',
+        splits: [{ name: 'Cross', time: 0 }], stopTime: 5000, elapsed: 5000,
+        splitsMatchMain: true, splitText: { size: 22, font: '22px Arial', colour: '#ffffff' }
+    };
+    drawFrame(canvas, '5', settings);
+    assert.deepEqual(texts.find(item => item.text === 'Cross'), { text: 'Cross', font: settings.font, colour: settings.colour });
+    assert.deepEqual(strokes.find(item => item.text === 'Cross'), { text: 'Cross', width: 2, colour: '#00ff00' });
+    assert.deepEqual(shapes[2].slice(3), [300, 200, 32]);
+    shapes.length = 0;
+    drawFrame(canvas, '5', { ...settings, oval: true });
+    assert.ok(shapes.every(shape => shape[0] === 'oval'));
+    assert.equal(shapes.length, 4);
+    shapes.length = 0;
+    drawFrame(canvas, '5', { ...settings, includeShape: false });
+    assert.equal(shapes.length, 0);
+});
+
+test('linked split opacity and cut-out composite stroked text once per panel', () => {
+    const composites = [], layerText = [];
+    function context() {
+        const stack = [];
+        return {
+            globalAlpha: 1, globalCompositeOperation: 'source-over',
+            measureText: () => ({ width: 10, fontBoundingBoxAscent: 15, fontBoundingBoxDescent: 5 }),
+            clearRect() {}, beginPath() {}, roundRect() {}, fill() {}, strokeText() {},
+            save() { stack.push({ globalAlpha: this.globalAlpha, globalCompositeOperation: this.globalCompositeOperation }); },
+            restore() { Object.assign(this, stack.pop()); },
+            fillText(text) { layerText.push({ text, align: this.textAlign }); },
+            drawImage() { composites.push({ alpha: this.globalAlpha, mode: this.globalCompositeOperation }); }
+        };
+    }
+    const previous = global.OffscreenCanvas;
+    global.OffscreenCanvas = class {
+        constructor(width, height) { this.width = width; this.height = height; this.ctx = context(); }
+        getContext() { return this.ctx; }
+    };
+    try {
+        const ctx = context();
+        const canvas = { width: 640, height: 480, getContext: () => ctx };
+        const settings = {
+            font: '20px Arial', size: 20, lineHeight: 24, padding: { top: 0, right: 0, bottom: 0, left: 0 },
+            includeShape: true, custom: false, radius: 10, borderStyle: 'none', background: '#000000',
+            colour: '#ffffff', stroke: 2, strokeColour: '#ff0000', textOpacity: .4,
+            splitsMatchMain: true, splits: [{ name: 'Cross', time: 0 }], stopTime: 5000, elapsed: 5000
+        };
+        for (const reverse of [false, true]) {
+            composites.length = 0;
+            for (let frame = 0; frame < 2; frame++) drawFrame(canvas, '5', { ...settings, reverse });
+            assert.equal(composites.length, 4);
+            assert.ok(composites.every(item => item.alpha === .4 && item.mode === (reverse ? 'destination-out' : 'source-over')));
+        }
+        assert.ok(layerText.filter(item => item.text === '5').every(item => item.align === 'left'));
+    } finally {
+        if (previous === undefined) delete global.OffscreenCanvas;
+        else global.OffscreenCanvas = previous;
+    }
+});
+
+test('split borders are independent unless main styling is linked', () => {
+    const strokes = [];
+    const ctx = {
+        measureText: () => ({ width: 10, fontBoundingBoxAscent: 15, fontBoundingBoxDescent: 5 }),
+        clearRect() {}, beginPath() {}, roundRect() {}, save() {}, restore() {}, fill() {}, fillText() {},
+        setLineDash(dash) { this.dash = dash; },
+        stroke() { strokes.push({ colour: this.strokeStyle, width: this.lineWidth, dash: this.dash }); }
+    };
+    const canvas = { width: 640, height: 480, getContext: () => ctx };
+    const settings = {
+        font: '20px Arial', size: 20, lineHeight: 24, padding: { top: 0, right: 0, bottom: 0, left: 0 },
+        includeShape: true, custom: true, shapeWidth: 200, shapeHeight: 100, radius: 10,
+        borderStyle: 'solid', borderWidth: 2, borderColour: '#ff0000', background: '#000000', colour: '#ffffff', stroke: 0,
+        splits: [{ name: 'Cross', time: 0 }], stopTime: 5000, splitsBackground: true,
+        splitBorder: { style: 'dashed', width: 6, colour: '#00ff00' }
+    };
+    drawFrame(canvas, '5', settings);
+    assert.deepEqual(strokes, [
+        { colour: '#ff0000', width: 2, dash: [] },
+        { colour: '#00ff00', width: 6, dash: [18, 18] }
+    ]);
+    strokes.length = 0;
+    drawFrame(canvas, '5', { ...settings, borderStyle: 'none' });
+    assert.deepEqual(strokes, [{ colour: '#00ff00', width: 6, dash: [18, 18] }]);
+    strokes.length = 0;
+    drawFrame(canvas, '5', { ...settings, splitBorder: { ...settings.splitBorder, style: 'none' } });
+    assert.deepEqual(strokes, [{ colour: '#ff0000', width: 2, dash: [] }]);
+    strokes.length = 0;
+    drawFrame(canvas, '5', { ...settings, splitsMatchMain: true });
+    assert.deepEqual(strokes, Array(2).fill({ colour: '#ff0000', width: 2, dash: [] }));
+    assert.equal(settings.splitBorder.width, 6, 'linking preserves independent settings');
+});
+
+test('separate exports draw only the selected visual, centered with independent fit bounds', () => {
+    const texts = [], shapes = [];
+    const ctx = {
+        measureText: () => ({ width: 10, fontBoundingBoxAscent: 15, fontBoundingBoxDescent: 5 }),
+        clearRect() {}, beginPath() {}, save() {}, restore() {}, fill() {}, strokeText() {},
+        fillText: (...args) => texts.push(args),
+        roundRect: (...args) => shapes.push(args)
+    };
+    const canvas = { width: 640, height: 480, getContext: () => ctx };
+    const settings = {
+        font: '20px Arial', size: 20, lineHeight: 24, padding: { top: 0, right: 0, bottom: 0, left: 0 },
+        includeShape: true, custom: true, shapeWidth: 200, shapeHeight: 100, radius: 10,
+        borderStyle: 'none', background: '#000000', colour: '#ffffff', stroke: 0,
+        splits: [{ name: 'Cross', time: 0 }], stopTime: 5000, elapsed: 5000, splitsBackground: true
+    };
+    const combined = drawFrame(canvas, '9', settings);
+    assert.ok(texts.some(item => item[0] === '9'));
+    assert.ok(texts.some(item => item[0] === 'Cross'));
+    texts.length = shapes.length = 0;
+    const main = drawFrame(canvas, '9', { ...settings, exportVisual: 'main' });
+    assert.deepEqual(texts.map(item => item[0]), ['9']);
+    assert.equal(shapes.length, 1);
+    assert.equal(shapes[0][1] + shapes[0][3] / 2, canvas.height / 2);
+    assert.equal(main.height, 100);
+    texts.length = shapes.length = 0;
+    const splits = drawFrame(canvas, '9', { ...settings, exportVisual: 'splits' });
+    assert.deepEqual(texts.map(item => item[0]), ['Cross', '5.00']);
+    assert.equal(shapes.length, 1);
+    assert.equal(shapes[0][1] + shapes[0][3] / 2, canvas.height / 2);
+    assert.equal(shapes[0][0] + shapes[0][2] / 2, canvas.width / 2);
+    assert.deepEqual(splits, { width: shapes[0][2], height: shapes[0][3] });
+    assert.ok(splits.height < combined.height);
+    texts.length = shapes.length = 0;
+    drawFrame(canvas, '9', { ...settings, exportVisual: 'splits', elapsed: 0 });
+    assert.deepEqual(texts.map(item => item[0]), ['Cross', '—']);
 });
