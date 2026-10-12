@@ -10,10 +10,18 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="fonts.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700,700i|Roboto:400,400i,700,700i|Lato:400,400i,700,700i|Poppins:400,400i,700,700i|Inter:400,400i,700,700i&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,700,700i|Raleway:400,400i,700,700i|Nunito:400,400i,700,700i|Ubuntu:400,400i,700,700i|Roboto+Mono:400,400i,700,700i|Source+Code+Pro:400,400i,700,700i|IBM+Plex+Mono:400,400i,700,700i|Merriweather:400,400i,700,700i|Playfair+Display:400,400i,700,700i|Orbitron:400,700&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow&amp;family=Barlow+Condensed&amp;family=DM+Sans&amp;family=Figtree&amp;family=Manrope&amp;family=Mulish&amp;family=Nunito+Sans&amp;family=Oswald&amp;family=Outfit&amp;family=Quicksand&amp;family=Rubik&amp;family=Work+Sans&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono&amp;family=JetBrains+Mono&amp;family=Fira+Code&amp;family=Inconsolata&amp;family=PT+Mono&amp;family=Ubuntu+Mono&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Bebas+Neue&amp;family=Bungee&amp;family=Chakra+Petch&amp;family=Exo+2&amp;family=Monoton&amp;family=Press+Start+2P&amp;family=Rajdhani&amp;family=Righteous&amp;family=Russo+One&amp;family=Teko&amp;family=VT323&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter&amp;family=Cormorant+Garamond&amp;family=Crimson+Text&amp;family=DM+Serif+Display&amp;family=Libre+Baskerville&amp;family=Lora&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat&amp;family=Dancing+Script&amp;family=Kalam&amp;family=Pacifico&amp;family=Permanent+Marker&amp;family=Shadows+Into+Light&amp;display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.6.0/dist/css/tom-select.css">
 </head>
 
 <body>
+    <section id="sticky-preview" aria-label="Live timer preview">
+    <div id="timer-stage">
     <div id="timer">
         <span class="digit" id="hour1">0</span>
         <span class="digit" id="hour2">0</span>
@@ -28,36 +36,75 @@
         <span class="digit" id="cs">0</span>
         <span class="digit" id="ms">0</span>
     </div>
+    <canvas id="reverse-preview" hidden aria-label="Timer with cut-out text"></canvas>
 
+    </div>
     <div id="buttons">
         <button id="start" class="timer-button">Start</button>
         <button id="stop" class="timer-button">Stop</button>
         <button id="reset" class="timer-button">Reset</button>
     </div>
     
+    </section>
+
+    <section id="presets" class="settings-card" aria-labelledby="presets-title">
+        <h2 id="presets-title">Presets</h2>
+        <div class="preset-grid">
+            <div>
+                <label for="preset-picker">Saved presets</label>
+                <select id="preset-picker"><option value="">Choose a preset</option></select>
+            </div>
+            <div>
+                <label for="preset-name">Preset name</label>
+                <input type="text" id="preset-name" maxlength="60" placeholder="e.g. Competition overlay">
+            </div>
+            <div class="preset-actions">
+                <button type="button" id="save-preset">Save as new</button>
+                <button type="button" id="load-preset" disabled>Load</button>
+                <button type="button" id="update-preset" disabled>Update</button>
+                <button type="button" id="delete-preset" disabled>Delete</button>
+                <button type="button" id="undo-preset" hidden>Undo delete</button>
+            </div>
+        </div>
+        <p class="help">Presets include all timing, appearance and video settings. Load resets playback; Update replaces the selected preset with your current setup and name.</p>
+        <div class="reset-settings-row">
+            <button type="button" id="reset-all-settings">Reset all settings</button>
+            <small>Restore standard defaults. Your named presets are kept.</small>
+        </div>
+        <p id="preset-status" role="status"></p>
+    </section>
+
+    <p id="settings-status" class="help" role="status">Settings saved automatically in this browser.</p>
     <div id="controls">
-        <div class="control">
-            <label for="delay">Delay before timer starts:</label>
-            <input type="number" id="delay" value="0" min="0" max="999">
-            <label for="delay">seconds</label>
-        </div>
-
-        <div class="control">
-            <label for="stopTimerHours">Stop timer at:</label>
-            <input type="number" id="stopTimerHours" value="0" min="0" max="99" step="1">
-            <label for="stopTimerHours">h</label>
-            <input type="number" id="stopTimerMinutes" value="0" min="0" max="59" step="1">
-            <label for="stopTimerMinutes">m</label>
-            <input type="number" id="stopTimerSeconds" value="6.25" min="0" max="59.999">
-            <label for="stopTimerSeconds">s</label>
-        </div>
-
-        <div class="control">
-            <label for="speedmult">Speed multiplier:</label>
-            <input type="number" id="speedmult" value="1" min="0" step="0.1">
-        </div>
-
-        <div class="control">
+        <section class="settings-card timing-card" aria-labelledby="timing-title">
+            <h2 id="timing-title">Timing</h2>
+            <div class="timing-grid">
+            <div class="timing-stack">
+                <div class="control timing-delay timing-start">
+                    <label for="delay">Start delay:</label>
+                    <span class="slider-control"><input type="range" data-timing="delay" min="0" max="60" step="0.1" value="0" aria-label="Start delay"><input type="number" id="delay" value="0" min="0" max="999" step="0.1"><span class="slider-unit">seconds</span></span>
+                </div>
+                <div class="control timing-delay timing-end">
+                    <label for="end-hold">End hold:</label>
+                    <span class="slider-control"><input type="range" id="end-hold" min="0" max="60" step="0.1" value="1"><input type="number" class="slider-value" id="end-hold-value" data-slider="end-hold" min="0" max="60" step="0.1" value="1" aria-label="End hold (seconds)"><span class="slider-unit">seconds</span></span>
+                    <small>How long the exported video stays on the final time.</small>
+                </div>
+            </div>
+            <div class="timing-stack">
+                <div class="control timing-stop">
+                    <label for="stopTimerHours">Stop timer at:</label>
+                    <div class="stop-time-fields">
+                        <input type="number" id="stopTimerHours" value="0" min="0" max="99" step="1" aria-label="Stop time hours"><label for="stopTimerHours">h</label>
+                        <input type="number" id="stopTimerMinutes" value="0" min="0" max="59" step="1" aria-label="Stop time minutes"><label for="stopTimerMinutes">m</label>
+                        <input type="number" id="stopTimerSeconds" value="6.25" min="0" max="59.999" step="0.001" aria-label="Stop time seconds"><label for="stopTimerSeconds">s</label>
+                    </div>
+                </div>
+                <div class="control timing-speed">
+                    <label for="speedmult">Speed multiplier:</label>
+                    <span class="slider-control"><input type="range" data-timing="speedmult" min="0.1" max="10" step="0.1" value="1" aria-label="Speed multiplier"><input type="number" id="speedmult" value="1" min="0.1" step="0.1"><span class="slider-unit">×</span></span>
+                </div>
+            </div>
+            <div class="control timing-format">
             <label for="timeformat">Time format:</label>
             <select id="timeformat" name="timeformat">
                 <option>S</option>
@@ -85,26 +132,166 @@
                 <option>HH:MM:SS.XX</option>
                 <option>HH:MM:SS.XXX</option>
             </select>
-        </div>
-
-        <div class="control">
-            <label for="textcolour">Text colour:</label>
-            <input type="color" id="textcolour" name="textcolour" value="#ff0000">
-        </div>
-        
-        <div class="control">
-            <label for="bgcolour">Background colour:</label>
-            <input type="color" id="bgcolour" name="bgcolour" value="#000000">
-        </div>
-        
-        <div class="control">
-            <label for="font-picker">Timer font:</label>
-            <select id="font-picker">
-                <option value="Open Sans" data-font="Comic Sans MS">Open Sans</option>
+        </div></div>
+        </section>
+        <section class="settings-card splits-card" aria-labelledby="splits-title">
+            <h2 id="splits-title">Splits</h2>
+            <label class="check-row"><input type="checkbox" id="splits-enabled"> Include named splits</label>
+            <p class="help">Enter when each split starts, in elapsed timer seconds (not video seconds). Each split ends when the next starts; the last ends at the main stop time. Displayed times are durations of individual splits.</p>
+            <div id="splits-editor" hidden>
+                <label class="check-row"><input type="checkbox" id="splits-live"> Live split times</label>
+                <p class="help">Each split counts from zero at its start time, then freezes when it ends. Future splits show a dash. Turn this off to reveal durations only after splits finish.</p>
+                <label class="check-row"><input type="checkbox" id="splits-background" checked> Give splits their own background</label>
+                <p class="help">The panel uses your timer background colour. Style split text independently below.</p>
+                <fieldset class="split-text-controls">
+                    <legend>Split text</legend>
+                    <div class="control"><label for="split-font">Font:</label><select id="split-font">
+                <option value="Open Sans" data-font="Open Sans">Open Sans</option>
                 <option value="Roboto" data-font="Roboto">Roboto</option>
                 <option value="Lato" data-font="Lato">Lato</option>
                 <option value="Poppins" data-font="Poppins">Poppins</option>
                 <option value="Inter" data-font="Inter">Inter</option>
+                <option value="Montserrat" data-font="Montserrat">Montserrat</option>
+                <option value="Raleway" data-font="Raleway">Raleway</option>
+                <option value="Nunito" data-font="Nunito">Nunito</option>
+                <option value="Ubuntu" data-font="Ubuntu">Ubuntu</option>
+                <option value="Roboto Mono" data-font="Roboto Mono">Roboto Mono</option>
+                <option value="Source Code Pro" data-font="Source Code Pro">Source Code Pro</option>
+                <option value="IBM Plex Mono" data-font="IBM Plex Mono">IBM Plex Mono</option>
+                <option value="Merriweather" data-font="Merriweather">Merriweather</option>
+                <option value="Playfair Display" data-font="Playfair Display">Playfair Display</option>
+                <option value="Orbitron" data-font="Orbitron">Orbitron</option>
+                <option value="Barlow" data-font="Barlow">Barlow</option>
+                <option value="Barlow Condensed" data-font="Barlow Condensed">Barlow Condensed</option>
+                <option value="DM Sans" data-font="DM Sans">DM Sans</option>
+                <option value="Figtree" data-font="Figtree">Figtree</option>
+                <option value="Manrope" data-font="Manrope">Manrope</option>
+                <option value="Mulish" data-font="Mulish">Mulish</option>
+                <option value="Nunito Sans" data-font="Nunito Sans">Nunito Sans</option>
+                <option value="Oswald" data-font="Oswald">Oswald</option>
+                <option value="Outfit" data-font="Outfit">Outfit</option>
+                <option value="Quicksand" data-font="Quicksand">Quicksand</option>
+                <option value="Rubik" data-font="Rubik">Rubik</option>
+                <option value="Work Sans" data-font="Work Sans">Work Sans</option>
+                <option value="Space Mono" data-font="Space Mono">Space Mono</option>
+                <option value="JetBrains Mono" data-font="JetBrains Mono">JetBrains Mono</option>
+                <option value="Fira Code" data-font="Fira Code">Fira Code</option>
+                <option value="Inconsolata" data-font="Inconsolata">Inconsolata</option>
+                <option value="PT Mono" data-font="PT Mono">PT Mono</option>
+                <option value="Ubuntu Mono" data-font="Ubuntu Mono">Ubuntu Mono</option>
+                <option value="Audiowide" data-font="Audiowide">Audiowide</option>
+                <option value="Bebas Neue" data-font="Bebas Neue">Bebas Neue</option>
+                <option value="Bungee" data-font="Bungee">Bungee</option>
+                <option value="Chakra Petch" data-font="Chakra Petch">Chakra Petch</option>
+                <option value="Exo 2" data-font="Exo 2">Exo 2</option>
+                <option value="Monoton" data-font="Monoton">Monoton</option>
+                <option value="Press Start 2P" data-font="Press Start 2P">Press Start 2P</option>
+                <option value="Rajdhani" data-font="Rajdhani">Rajdhani</option>
+                <option value="Righteous" data-font="Righteous">Righteous</option>
+                <option value="Russo One" data-font="Russo One">Russo One</option>
+                <option value="Teko" data-font="Teko">Teko</option>
+                <option value="VT323" data-font="VT323">VT323</option>
+                <option value="Bitter" data-font="Bitter">Bitter</option>
+                <option value="Cormorant Garamond" data-font="Cormorant Garamond">Cormorant Garamond</option>
+                <option value="Crimson Text" data-font="Crimson Text">Crimson Text</option>
+                <option value="DM Serif Display" data-font="DM Serif Display">DM Serif Display</option>
+                <option value="Libre Baskerville" data-font="Libre Baskerville">Libre Baskerville</option>
+                <option value="Lora" data-font="Lora">Lora</option>
+                <option value="Caveat" data-font="Caveat">Caveat</option>
+                <option value="Dancing Script" data-font="Dancing Script">Dancing Script</option>
+                <option value="Kalam" data-font="Kalam">Kalam</option>
+                <option value="Pacifico" data-font="Pacifico">Pacifico</option>
+                <option value="Permanent Marker" data-font="Permanent Marker">Permanent Marker</option>
+                <option value="Shadows Into Light" data-font="Shadows Into Light">Shadows Into Light</option>
+                <option value="Segoe UI" data-font="Segoe UI">Segoe UI</option>
+                <option value="Arial" data-font="Arial" selected>Arial</option>
+                <option value="Helvetica" data-font="Helvetica">Helvetica</option>
+                <option value="Verdana" data-font="Verdana">Verdana</option>
+                <option value="Tahoma" data-font="Tahoma">Tahoma</option>
+                <option value="Comic Sans MS" data-font="Comic Sans MS">Comic Sans</option>
+                <option value="Garamond" data-font="Garamond">Garamond</option>
+                <option value="Times New Roman" data-font="Times New Roman">Times New Roman</option>
+                <option value="Courier New" data-font="Courier New">Courier New</option>
+                <option value="7-Segment Display" data-font="7-Segment Display">7-Segment Display</option>
+                <option value="7-Segment Display Mini" data-font="7-Segment Display Mini">7-Segment Display Mini</option>
+                <option value="7-Segment Display Light" data-font="7-Segment Display Light">7-Segment Display Light</option>
+                <option value="7-Segment Display Mini Light" data-font="7-Segment Display Mini Light">7-Segment Display Mini Light</option>
+                <option value="14-Segment Display" data-font="14-Segment Display">14-Segment Display</option>
+                <option value="14-Segment Display Mini" data-font="14-Segment Display Mini">14-Segment Display Mini</option>
+                <option value="14-Segment Display Light" data-font="14-Segment Display Light">14-Segment Display Light</option>
+                <option value="14-Segment Display Mini Light" data-font="14-Segment Display Mini Light">14-Segment Display Mini Light</option>
+            </select></div>
+                    <div class="control"><label for="split-size">Font size:</label><span class="slider-control"><input type="range" id="split-size" min="10" max="96" step="1" value="22"><input type="number" class="slider-value" id="split-size-value" data-slider="split-size" min="10" max="96" step="1" value="22" aria-label="Split font size (px)"><span class="slider-unit">px</span></span></div>
+                    <div class="split-text-toggles"><label for="split-colour">Text colour:</label><input type="color" id="split-colour" value="#ffffff"><label class="check-row"><input type="checkbox" id="split-bold"> Bold</label><label class="check-row"><input type="checkbox" id="split-italic"> Italic</label></div>
+                    <div class="control"><label for="split-opacity">Text opacity:</label><span class="slider-control"><input type="range" id="split-opacity" min="0" max="100" step="1" value="100"><input type="number" class="slider-value" id="split-opacity-value" data-slider="split-opacity" min="0" max="100" step="1" value="100" aria-label="Split text opacity (%)"><span class="slider-unit">%</span></span></div>
+                </fieldset>
+                <div id="split-rows"></div>
+                <button type="button" id="add-split">Add split</button>
+                <p id="splits-notice" class="help" role="status"></p>
+            </div>
+        </section>
+        <section class="settings-card text-card" aria-labelledby="text-title">
+            <h2 id="text-title">Text &amp; font</h2>
+<div class="control">
+            <label for="font-picker">Timer font:</label>
+            <select id="font-picker">
+                <option value="Open Sans" data-font="Open Sans">Open Sans</option>
+                <option value="Roboto" data-font="Roboto">Roboto</option>
+                <option value="Lato" data-font="Lato">Lato</option>
+                <option value="Poppins" data-font="Poppins">Poppins</option>
+                <option value="Inter" data-font="Inter">Inter</option>
+                <option value="Montserrat" data-font="Montserrat">Montserrat</option>
+                <option value="Raleway" data-font="Raleway">Raleway</option>
+                <option value="Nunito" data-font="Nunito">Nunito</option>
+                <option value="Ubuntu" data-font="Ubuntu">Ubuntu</option>
+                <option value="Roboto Mono" data-font="Roboto Mono">Roboto Mono</option>
+                <option value="Source Code Pro" data-font="Source Code Pro">Source Code Pro</option>
+                <option value="IBM Plex Mono" data-font="IBM Plex Mono">IBM Plex Mono</option>
+                <option value="Merriweather" data-font="Merriweather">Merriweather</option>
+                <option value="Playfair Display" data-font="Playfair Display">Playfair Display</option>
+                <option value="Orbitron" data-font="Orbitron">Orbitron</option>
+                <option value="Barlow" data-font="Barlow">Barlow</option>
+                <option value="Barlow Condensed" data-font="Barlow Condensed">Barlow Condensed</option>
+                <option value="DM Sans" data-font="DM Sans">DM Sans</option>
+                <option value="Figtree" data-font="Figtree">Figtree</option>
+                <option value="Manrope" data-font="Manrope">Manrope</option>
+                <option value="Mulish" data-font="Mulish">Mulish</option>
+                <option value="Nunito Sans" data-font="Nunito Sans">Nunito Sans</option>
+                <option value="Oswald" data-font="Oswald">Oswald</option>
+                <option value="Outfit" data-font="Outfit">Outfit</option>
+                <option value="Quicksand" data-font="Quicksand">Quicksand</option>
+                <option value="Rubik" data-font="Rubik">Rubik</option>
+                <option value="Work Sans" data-font="Work Sans">Work Sans</option>
+                <option value="Space Mono" data-font="Space Mono">Space Mono</option>
+                <option value="JetBrains Mono" data-font="JetBrains Mono">JetBrains Mono</option>
+                <option value="Fira Code" data-font="Fira Code">Fira Code</option>
+                <option value="Inconsolata" data-font="Inconsolata">Inconsolata</option>
+                <option value="PT Mono" data-font="PT Mono">PT Mono</option>
+                <option value="Ubuntu Mono" data-font="Ubuntu Mono">Ubuntu Mono</option>
+                <option value="Audiowide" data-font="Audiowide">Audiowide</option>
+                <option value="Bebas Neue" data-font="Bebas Neue">Bebas Neue</option>
+                <option value="Bungee" data-font="Bungee">Bungee</option>
+                <option value="Chakra Petch" data-font="Chakra Petch">Chakra Petch</option>
+                <option value="Exo 2" data-font="Exo 2">Exo 2</option>
+                <option value="Monoton" data-font="Monoton">Monoton</option>
+                <option value="Press Start 2P" data-font="Press Start 2P">Press Start 2P</option>
+                <option value="Rajdhani" data-font="Rajdhani">Rajdhani</option>
+                <option value="Righteous" data-font="Righteous">Righteous</option>
+                <option value="Russo One" data-font="Russo One">Russo One</option>
+                <option value="Teko" data-font="Teko">Teko</option>
+                <option value="VT323" data-font="VT323">VT323</option>
+                <option value="Bitter" data-font="Bitter">Bitter</option>
+                <option value="Cormorant Garamond" data-font="Cormorant Garamond">Cormorant Garamond</option>
+                <option value="Crimson Text" data-font="Crimson Text">Crimson Text</option>
+                <option value="DM Serif Display" data-font="DM Serif Display">DM Serif Display</option>
+                <option value="Libre Baskerville" data-font="Libre Baskerville">Libre Baskerville</option>
+                <option value="Lora" data-font="Lora">Lora</option>
+                <option value="Caveat" data-font="Caveat">Caveat</option>
+                <option value="Dancing Script" data-font="Dancing Script">Dancing Script</option>
+                <option value="Kalam" data-font="Kalam">Kalam</option>
+                <option value="Pacifico" data-font="Pacifico">Pacifico</option>
+                <option value="Permanent Marker" data-font="Permanent Marker">Permanent Marker</option>
+                <option value="Shadows Into Light" data-font="Shadows Into Light">Shadows Into Light</option>
                 <option value="Segoe UI" data-font="Segoe UI">Segoe UI</option>
                 <option value="Arial" data-font="Arial">Arial</option>
                 <option value="Helvetica" data-font="Helvetica">Helvetica</option>
@@ -123,16 +310,144 @@
                 <option value="14-Segment Display Light" data-font="14-Segment Display Light">14-Segment Display Light</option>
                 <option value="14-Segment Display Mini Light" data-font="14-Segment Display Mini Light">14-Segment Display Mini Light</option>
             </select>
-        </div>
-        
-        <div class="control">
-            <button id="bold-toggle" class="font-toggle">B</button>
-            <button id="italic-toggle" class="font-toggle active">I</button>
-        </div>
+        </div><div class="text-style-row"><div class="control">
+            <label for="textcolour">Text colour:</label>
+            <input type="color" id="textcolour" name="textcolour" value="#ff0000">
+        </div><div class="control">
+            <button aria-label="Bold" id="bold-toggle" class="font-toggle">B</button>
+            <button aria-label="Italic" id="italic-toggle" class="font-toggle active">I</button>
+        </div></div><fieldset class="control text-appearance">
+            <legend>Size &amp; stroke</legend>
+            <label class="reverse-option"><input type="checkbox" id="balance-digits" checked> Optically center digits</label>
+            <small>Centers digit slots. Seven-segment fonts keep a shared segment grid to prevent sideways jumps.</small>
+            <label class="reverse-option"><input type="checkbox" id="reverse-text"> Reverse / cut-out text</label>
+            <small>Cut the numbers out of the background. Text opacity controls cut-out strength; 100% makes clear holes. Use MOV to preserve the holes over another video.</small>
+            <label for="text-opacity">Text opacity:</label>
+            <span class="slider-control"><input type="range" id="text-opacity" min="0" max="100" value="100"><input type="number" class="slider-value" id="text-opacity-value" data-slider="text-opacity" value="100" min="0" max="100" step="1" aria-label="Text opacity (%)"><span class="slider-unit" aria-hidden="true">%</span></span>
+            <label for="font-size">Font size:</label>
+            <span class="slider-control"><input type="range" id="font-size" min="16" max="400" value="112"><input type="number" class="slider-value" id="font-size-value" data-slider="font-size" value="112" min="16" max="400" step="1" aria-label="Font size (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+            <label for="text-stroke-width">Text stroke:</label>
+            <span class="slider-control"><input type="range" id="text-stroke-width" min="0" max="20" value="0" step="0.5"><input type="number" class="slider-value" id="text-stroke-width-value" data-slider="text-stroke-width" value="0" min="0" max="20" step="0.5" aria-label="Text stroke width (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+            <label for="text-stroke-colour">Stroke colour:</label>
+            <input type="color" id="text-stroke-colour" value="#ffffff">
+            <small>Set stroke to 0 to turn it off.</small>
+        </fieldset>
+        </section>
+        <section class="settings-card background-card" aria-labelledby="background-title">
+            <h2 id="background-title">Background</h2>
+            <div class="background-grid">
+                <div class="settings-stack"><fieldset class="control timer-shape">
+            <legend>Shape &amp; size</legend>
+            <label for="background-shape">Shape:</label>
+            <select id="background-shape">
+                <option value="rectangle" selected>Square / rectangle</option>
+                <option value="oval">Circle / oval</option>
+            </select>
+            <div id="shape-dimensions">
+                <label class="dimension-mode"><input type="checkbox" id="custom-dimensions"> Use custom dimensions</label>
+                <label class="dimension-mode"><input type="checkbox" id="lock-aspect-ratio"> Lock aspect ratio</label>
+                <label for="shape-width">Width (px):</label>
+                <span class="slider-control"><input type="range" id="shape-width" value="400" min="1" max="4000" step="any"><input type="number" class="slider-value" id="shape-width-value" data-slider="shape-width" value="400" min="1" max="4000" step="any" aria-label="Shape width (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+                <label for="shape-height">Height (px):</label>
+                <span class="slider-control"><input type="range" id="shape-height" value="400" min="1" max="4000" step="any"><input type="number" class="slider-value" id="shape-height-value" data-slider="shape-height" value="400" min="1" max="4000" step="any" aria-label="Shape height (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+                <small>Equal dimensions make a circle. Turn off custom dimensions to auto-fit rectangles.</small>
+            </div>
+        </fieldset><fieldset class="control background-spacing" id="background-spacing">
+            <legend>Spacing</legend>
+            <label class="check-row spacing-lock"><input type="checkbox" id="lock-spacing-ratio"> Lock spacing proportions</label>
+            <small class="spacing-lock-help">Scales all four sides together. Zero sides stay zero until unlocked.</small>
+            <div class="spacing-inputs">
+                <label for="padding-top">Top <span class="slider-control"><input type="range" id="padding-top" value="32" min="0" max="2000" step="any"><input type="number" class="slider-value" id="padding-top-value" data-slider="padding-top" value="32" min="0" max="2000" step="any" aria-label="Padding top (px)"><span class="slider-unit" aria-hidden="true">px</span></span></label>
+                <label for="padding-right">Right <span class="slider-control"><input type="range" id="padding-right" value="32" min="0" max="2000" step="any"><input type="number" class="slider-value" id="padding-right-value" data-slider="padding-right" value="32" min="0" max="2000" step="any" aria-label="Padding right (px)"><span class="slider-unit" aria-hidden="true">px</span></span></label>
+                <label for="padding-bottom">Bottom <span class="slider-control"><input type="range" id="padding-bottom" value="48" min="0" max="2000" step="any"><input type="number" class="slider-value" id="padding-bottom-value" data-slider="padding-bottom" value="48" min="0" max="2000" step="any" aria-label="Padding bottom (px)"><span class="slider-unit" aria-hidden="true">px</span></span></label>
+                <label for="padding-left">Left <span class="slider-control"><input type="range" id="padding-left" value="32" min="0" max="2000" step="any"><input type="number" class="slider-value" id="padding-left-value" data-slider="padding-left" value="32" min="0" max="2000" step="any" aria-label="Padding left (px)"><span class="slider-unit" aria-hidden="true">px</span></span></label>
+            </div>
+            <button type="button" id="center-time">Center time</button>
+            <small>Balances opposite sides while keeping the background size.</small>
+        </fieldset></div>
+                <div class="settings-stack"><div class="control">
+            <label for="bgcolour">Background colour:</label>
+            <input type="color" id="bgcolour" name="bgcolour" value="#000000">
+            <label for="background-opacity" class="opacity-label">Background opacity:</label>
+            <span class="slider-control"><input type="range" id="background-opacity" min="0" max="100" value="100"><input type="number" class="slider-value" id="background-opacity-value" data-slider="background-opacity" value="100" min="0" max="100" step="1" aria-label="Background opacity (%)"><span class="slider-unit" aria-hidden="true">%</span></span>
+            <small>Fill only; border stays unchanged.</small>
+        </div><div class="control">
+            <label for="corner-radius">Corner roundness:</label>
+            <span class="slider-control"><input type="range" id="corner-radius" value="32" min="0" max="2000" step="any" aria-describedby="corner-radius-help"><input type="number" class="slider-value" id="corner-radius-value" data-slider="corner-radius" value="32" min="0" max="2000" step="any" aria-label="Corner radius (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+            <small id="corner-radius-help">0 gives square corners.</small>
+        </div><fieldset class="control timer-border">
+            <legend>Border</legend>
+            <label for="border-style">Style:</label>
+            <select id="border-style">
+                <option value="none" selected>None</option>
+                <option value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+                <option value="double">Double</option>
+            </select>
+            <label for="border-colour">Colour:</label>
+            <input type="color" id="border-colour" value="#ffffff">
+            <label for="border-width">Stroke width (px):</label>
+            <span class="slider-control"><input type="range" id="border-width" value="2" min="0" max="2000" step="any"><input type="number" class="slider-value" id="border-width-value" data-slider="border-width" value="2" min="0" max="2000" step="any" aria-label="Border width (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+        </fieldset></div>
+            </div>
+        </section>
     </div>
 
+    <section id="video-export" class="settings-card" aria-labelledby="export-title">
+        <h2 id="export-title">Video export</h2>
+        <div class="export-grid">
+            <div class="export-settings">
+                <h3>Frame &amp; format</h3>
+<div class="video-dimensions">
+            <label class="dimension-mode"><input type="checkbox" id="lock-video-ratio"> Lock video aspect ratio</label>
+            <label for="video-width">Video width:</label>
+            <span class="slider-control"><input type="range" id="video-width" min="64" max="4096" value="1280"><input type="number" class="slider-value" id="video-width-value" data-slider="video-width" value="1280" min="64" max="4096" step="1" aria-label="Video width (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+            <label for="video-height">Video height:</label>
+            <span class="slider-control"><input type="range" id="video-height" min="64" max="4096" value="720"><input type="number" class="slider-value" id="video-height-value" data-slider="video-height" value="720" min="64" max="4096" step="1" aria-label="Video height (px)"><span class="slider-unit" aria-hidden="true">px</span></span>
+        </div><label class="check-row"><input type="checkbox" id="include-shape" checked> Include background shape and border</label>
+<button type="button" id="fit-video">Fit frame to timer</button><div class="video-dimensions">
+            <label for="video-fps">Frame rate:</label>
+            <select id="video-fps">
+                <option value="23.976">23.976 fps</option>
+                <option value="24">24 fps</option>
+                <option value="25">25 fps</option>
+                <option value="29.97">29.97 fps</option>
+                <option value="30" selected>30 fps</option>
+                <option value="48">48 fps</option>
+                <option value="50">50 fps</option>
+                <option value="59.94">59.94 fps</option>
+                <option value="60">60 fps</option>
+                <option value="120">120 fps</option>
+            </select>
+            <label for="video-format">File format:</label>
+            <select id="video-format">
+                <option value="mov" selected>MOV — ProRes 4444 (transparent background)</option>
+                <option value="mp4">MP4 — browser recording</option>
+            </select>
+        </div><p id="video-format-help">MOV exports ProRes 4444 with a transparent background. Requires python3 server.py and FFmpeg; see README for setup.</p>
+                <div class="export-actions"><button type="button" id="download-video">Download MOV</button><button type="button" id="cancel-export" hidden>Cancel export</button></div>
+                <p class="help">Uses your timing settings, including End hold for the final time. Maximum 10 minutes and 256 MB.</p>
+<progress id="export-progress" value="0" max="1" hidden aria-label="Video export progress"></progress><p id="export-status" role="status"></p><a id="export-download" hidden>Save timer.mov</a>
+            </div>
+            <div class="export-preview">
+                <h3>Live frame preview</h3>
+                <div class="preview-surface"><canvas id="video-preview" width="1280" height="720" aria-label="Live video frame preview"></canvas></div>
+                <p class="help">The blue outline is the video edge. Checkerboard areas are transparent; the checkerboard and outline are not exported.</p>
+<p id="frame-warning" role="status"></p>
+            </div>
+        </div>
+    </section>
+
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.6.0/dist/js/tom-select.complete.min.js"></script>
+    <script src="settings.js"></script>
     <script src="script.js" ></script>
+    <script src="splits.js"></script>
+    <script src="video-export.js"></script>
+    <script src="preview.js"></script>
+    <script src="presets.js"></script>
+    <script src="slider-values.js"></script>
+    <script src="timing-controls.js"></script>
 </body>
 
 </html>

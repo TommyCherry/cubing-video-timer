@@ -155,3 +155,7 @@ fonts-DSEG_v046/DSEG7-Modern-MINI/DSEG7ModernMini-Regular.woff2
 fonts-DSEG_v046/DSEGWeather/DSEGWeather.ttf
 fonts-DSEG_v046/DSEGWeather/DSEGWeather.woff
 fonts-DSEG_v046/DSEGWeather/DSEGWeather.woff2
+
+# Local Python export server
+.venv/
+__pycache__/
